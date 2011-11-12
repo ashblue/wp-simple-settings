@@ -11,6 +11,25 @@ Repository URL: Coming Soon
 /***********************
 Set Page Basics
 ***********************/
+class Page {
+        var $setup = array(
+                'title' => 'Options',
+                'permission' => 'create_users',
+        ),
+        
+        function add_page() {
+                add_theme_page('Footer Options', 'Footer Options', 'create_users', 'footer_config', 'page_details');
+        },
+        
+        function page_details() {
+                
+        }
+}
+
+/* Old Script */
+/***********************
+Set Page Basics
+***********************/
 // add the admin option pages
 add_action('admin_menu', 'admin_add_page');
 function admin_add_page() {
