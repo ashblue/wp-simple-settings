@@ -13,6 +13,8 @@ Options Script
 ***********************/
 class Page {
     var $title = 'Options';
+    var $desc = 'Place your description here.';
+    var $submit = 'Save Changes';
     var $permission = 'create_users';
     var $slug = 'options_config';
     var $details = 'Configure additional settings for your WordPress theme.';
@@ -30,12 +32,12 @@ class Page {
     function page_details() { ?>
         <div>
             <h2><?php echo $this->title; ?></h2>
-            <p>Configure various settings for the footer</p>
+            <?php if ($this->desc) echo '<p>' . $this->desc . '</p>'; ?>
             <form id="optionSubmit" action="options.php" method="post">
-                <?php settings_fields('page_options'); ?>
+                <?php settings_fields($this->slug); ?>
                 <?php do_settings_sections('page_config'); ?>
 
-                <p class="submit"><input name="Submit" type="submit" value="<?php esc_attr_e('Save Changes'); ?>" /></p>
+                <p class="submit"><input name="Submit" type="submit" value="<?php esc_attr_e($this->submit); ?>" /></p>
             </form>
         </div>
     <?php }
@@ -43,26 +45,44 @@ class Page {
     // Array setup for inputs
     var $input_info = array();
     function input_array() {
-        
         $this->input_info[] = array(
-            'id' => '',
-            'title' => '',
-            'desc' => '',
+            'id' => 'test',
+            'title' => 'Input Section',
+            'desc' => 'This is a test input section.',
             
             'inputs' => array(
                 array(
-                    'id' => '',
-                    'title' => '',
-                    'type' => ''
+                    'id' => 'test',
+                    'title' => 'Text Input',
+                    'type' => 'text'
                 ),
             )
         );
         
+        $this->input_info[] = array(
+            'id' => 'test',
+            'title' => 'Input Section',
+            'desc' => 'This is a test input section.',
+            
+            'inputs' => array(
+                array(
+                    'id' => 'test',
+                    'title' => 'Text Input',
+                    'type' => 'text'
+                ),
+            )
+        );
     }
     // Run input setup
     function input_setup() {
-        register_setting('page_options', 'page_options', array($this, 'validate'));
+        register_setting($this->slug, $this->slug, array($this, 'validate'));
         
+        foreach ( $this->input_info as $section ) {
+            echo $section['id'];
+            foreach ( $section['inputs'] as $input ) {
+                echo $input['id'];
+            }
+        }
         // Settings section
             // id
             // title
@@ -76,13 +96,13 @@ class Page {
             // attached section
     }
     // Inputs
-    function length_string() {
+    function length() {
         
     }
-    function input_text() {
+    function text() {
         
     }
-    function input_textarea() {
+    function textarea() {
         
     }
     
