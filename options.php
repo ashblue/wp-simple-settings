@@ -156,12 +156,24 @@ class Page {
     function radio() {
         $options_array = get_option($this->slug);
         
+        // <input type="radio" name="post_format" class="post-format" id="post-format-aside" value="aside" checked="checked"> <label for="post-format-aside">Aside</label>
+        // <br>
+        // <input class="radio' . $field_class . '" type="radio" name="mytheme_options[' . $id . ']" id="' . $id . $i . '" value="' . esc_attr( $value ) . '" ' . checked( $options[$id], $value, false ) . '> <label for="' . $id . $i . '">' . $label . '</label>';
+
         // Output header of list
         echo '<div class="' . $this->input_class[$this->counterInput] . '" id="' . $this->input_id[$this->counterInput] . '">';
-            // <input type="radio" name="post_format" class="post-format" id="post-format-aside" value="aside" checked="checked"> <label for="post-format-aside">Aside</label>
-            // <br>
+        
             // Explode input_list into an array
+            $list = explode(', ', $this->input_list[$this->counterInput]);
+            $count = 0;
             // Pump out list items
+            foreach($list as $choice):
+                echo '<input type="radio" name="' . $this->slug . '[' . $this->input_id[$this->counterInput] . ']" class="' . $this->input_class[$this->counterInput] . $count . '" id="' . $this->input_id[$this->counterInput] . $count . '" value="#" checked=""' . '>';
+                echo '<label for="' . $this->input_id[$this->counterInput] . $count . '">' . $choice . '</label>';
+                echo '<br/>';
+                $count++;
+            endforeach;
+            
         // Output end of list
         echo '</div>';
         
