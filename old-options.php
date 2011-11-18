@@ -91,7 +91,6 @@ function admin_settings(){
 }
 
 
-
 // Section text
 function social_media_text() {
 	echo '<p>Add URLs to activate your social media buttons.</p>';
