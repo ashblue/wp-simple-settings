@@ -9,6 +9,8 @@ Repository URL: https://github.com/ashblue/wp-simple-settings
 - add in a css file to partially gray out input descriptions
 - needs some good default settings for inputs
 - seperate file for creating your objects (should have a built in tutorial)
+- Finish setting up dropdown, single checkbox, and multi-checkbox
+- Test validation functionality
 */
 
 /***********************
@@ -123,7 +125,7 @@ class Page {
         }
         return $length;
     }
-    function input_desc($desc) {
+    function desc_output($desc) {
         if ($desc):
             echo '<p class="desc">' . $desc . '</p>';
         endif;
@@ -139,7 +141,7 @@ class Page {
 	
         // Display input
         echo '<input class="' . $this->input_class[$this->counterInput] . '" id="' . $this->input_id[$this->counterInput] . '" ' . $length . ' name="' . $this->slug . '[' . $this->input_id[$this->counterInput] . ']" size="40" type="text" placeholder="' . $this->input_place[$this->counterInput] . '" value="' . $options_array[$this->input_id[$this->counterInput]] . '" />';
-        input_desc($this->input_desc[$this->counterInput]);
+        $this->desc_output($this->input_desc[$this->counterInput]);
         
         // Increment mandatory to prevent loop from reusing previous values
         $this->counterInput += 1;
@@ -149,16 +151,12 @@ class Page {
         $length = $this->length_string($this->input_min[$this->counterInput], $this->input_max[$this->counterInput]);	
 
         echo '<textarea class="' . $this->input_class[$this->counterInput] . '" id="' . $this->input_id[$this->counterInput] . '" ' . $length . ' name="' . $this->slug . '[' . $this->input_id[$this->counterInput] . ']" rows="7" cols="50" placeholder="' . $this->input_place[$this->counterInput] . '" type="textarea">' . $options_array[$this->input_id[$this->counterInput]] . '</textarea>';
-        input_desc($this->input_desc[$this->counterInput]);
+        $this->desc_output($this->input_desc[$this->counterInput]);
 
         $this->counterInput += 1;
     }
     function radio() {
         $options_array = get_option($this->slug);
-        
-        // <input type="radio" name="post_format" class="post-format" id="post-format-aside" value="aside" checked="checked"> <label for="post-format-aside">Aside</label>
-        // <br>
-        // <input class="radio' . $field_class . '" type="radio" name="mytheme_options[' . $id . ']" id="' . $id . $i . '" value="' . esc_attr( $value ) . '" ' . checked( $options[$id], $value, false ) . '> <label for="' . $id . $i . '">' . $label . '</label>';
 
         // Output header of list
         echo '<div class="' . $this->input_class[$this->counterInput] . '" id="' . $this->input_id[$this->counterInput] . '">';
@@ -168,24 +166,68 @@ class Page {
             $count = 0;
             // Pump out list items
             foreach($list as $choice):
-                echo '<input type="radio" name="' . $this->slug . '[' . $this->input_id[$this->counterInput] . ']" class="' . $this->input_class[$this->counterInput] . $count . '" id="' . $this->input_id[$this->counterInput] . $count . '" value="#" checked=""' . '>';
+            
+                echo '<input type="radio" name="' . $this->slug . '[' . $this->input_id[$this->counterInput] . ']" id="' . $this->input_id[$this->counterInput] . $count . '" value="' . $choice . '" ' . checked($options_array[$this->input_id[$this->counterInput]],$choice, false) . '" ' . '>';
+                
                 echo '<label for="' . $this->input_id[$this->counterInput] . $count . '">' . $choice . '</label>';
                 echo '<br/>';
                 $count++;
+                
+            endforeach;
+                        
+        // Output end of list
+        echo '</div>';
+        
+        $this->desc_output($this->input_desc[$this->counterInput]);
+
+        $this->counterInput += 1;
+    }
+    function checkbox() {
+        $options_array = get_option($this->slug);
+
+        // Output header of list
+        echo '<div class="' . $this->input_class[$this->counterInput] . '" id="' . $this->input_id[$this->counterInput] . '">';
+        
+            // Explode input_list into an array
+            $list = explode(', ', $this->input_list[$this->counterInput]);
+            $count = 0;
+            // Pump out list items
+            foreach($list as $choice):
+            
+                echo '<input type="checkbox" name="' . $this->slug . '[' . $this->input_id[$this->counterInput] . ']" id="' . $this->input_id[$this->counterInput] . $count . '" value="' . $choice . '" ' . checked($options_array[$this->input_id[$this->counterInput]], $choice, false) . '" ' . '>';
+                
+                echo '<label for="' . $this->input_id[$this->counterInput] . $count . '">' . $choice . '</label>';
+                echo '<br/>';
+                $count++;
+                
             endforeach;
             
         // Output end of list
         echo '</div>';
         
-        input_desc($this->input_desc[$this->counterInput]);
+        $this->desc_output($this->input_desc[$this->counterInput]);
 
         $this->counterInput += 1;
     }
-    function checkbox() {
-        
+    function checkbox_multi() {
+        // http://wp.tutsplus.com/tutorials/using-the-settings-api-part-1-create-a-theme-options-page/
     }
     function dropdown() {
+        $options_array = get_option($this->slug);
         
+        echo '<select name="" id="">';
+            $count = 0;
+            $list = explode(', ', $this->input_list[$this->counterInput]);
+            foreach($list as $choice):
+                // Tweak it so selected only pumps out at the appropriate list value
+                echo '<option selected="selected" value="' . $choice . '">' . $choice . '</option>';
+                
+                $count++;
+            endforeach;
+        echo '</select>';
+        
+        $this->desc_output($this->input_desc[$this->counterInput]);
+        $this->counterInput += 1;
     }
     
     /**********
@@ -196,11 +238,13 @@ class Page {
         // Loop through all inputs and check for validation functions
         // You can easily add your own validation functions in custom objects
         $counter = 0;
-        foreach ( $this->input_valid[$counter] as $valid ) {
+        foreach ( $this->input_valid as $valid ) {
             if ($valid):
                 // http://stackoverflow.com/questions/1005857/how-to-call-php-function-from-string-stored-in-a-variable
-                $input[$this->input_id[$counter]] = $valid($input, $this->input_id[$counter]);
+                // Extra valid statement in front of $valid so it looks in the object to process the validation function
+                $input[$this->input_id[$counter]] = $this->$valid($input, $this->input_id[$counter]);
             endif;
+            $counter++;
         }
         
         // Send back the modified results
@@ -273,12 +317,13 @@ class My_settings extends Page {
                     'id' => 'test',
                     'class' => 'name',
                     'title' => 'Text Input',
-                    'type' => 'text',
+                    'type' => 'radio',
                     'length_min' => 5,
                     'length_max' => 25,
                     'desc' => 'test',
-                    'validate' =>
-                ),
+                    'list' => 'meow, woof, bark'
+                    //'validate' => 'validate_url'
+                )
             )
         );
         
@@ -293,6 +338,25 @@ class My_settings extends Page {
                     'title' => 'Text Input 2',
                     'type' => 'text'
                 ),
+            )
+        );
+        
+        $this->input_info[] = array(
+            // Create your settings section
+            'id' => 'tester',
+            'title' => 'Input Section',
+            'desc' => 'This is a test input section 1.',
+            'inputs' => array(
+                // Create as many different inputs here as you want
+                array(
+                    'id' => 'tester',
+                    'class' => 'name',
+                    'title' => 'Text Input',
+                    'type' => 'checkbox',
+                    'desc' => 'test',
+                    'list' => 'meow, woof, bark'
+                    //'validate' => 'validate_url'
+                )
             )
         );
     }
