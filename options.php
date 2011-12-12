@@ -1,16 +1,18 @@
 <?php
 /*
 Title: Simple WordPress Settings API Script
-Version: Pre-Alpha
+Version: Alpha .1
 Author: Ash Blue
 Author URL: http://blueashes.com
 Repository URL: https://github.com/ashblue/wp-simple-settings
-- page_config needs to have a dynamic variable
 - add in a css file to partially gray out input descriptions
 - needs some good default settings for inputs
 - seperate file for creating your objects (should have a built in tutorial)
 - Finish setting up dropdown, single checkbox, and multi-checkbox
 - Test validation functionality
+- Allow for an array of validation functions to be passed
+- Min / Max length should also run PHP validation in addition to injecting max attributes in HTML
+- Include an order number to simply organize sections
 */
 
 /***********************
@@ -24,7 +26,6 @@ class Page {
     var $desc = 'Place your description here.';
     var $submit = 'Save Changes';
     var $permission = 'create_users';
-    var $details = 'Configure additional settings for your WordPress theme.';
     
     // Runs page setup at a specific time in WordPress
     function setup() {
@@ -48,7 +49,7 @@ class Page {
             <?php if ($this->desc) echo '<p>' . $this->desc . '</p>'; ?>
             <form id="optionSubmit" action="options.php" method="post">
                 <?php settings_fields($this->slug); ?>
-                <?php do_settings_sections('page_config'); ?>
+                <?php do_settings_sections($this->slug . '_setup'); ?>
 
                 <p class="submit"><input name="Submit" type="submit" value="<?php esc_attr_e($this->submit); ?>" /></p>
             </form>
@@ -82,7 +83,7 @@ class Page {
             // Text must be passed here to prevent conflicts with passing the function name as a string
             $this->sec_text[] = $section['desc'];
     
-            add_settings_section($section['id'], $section['title'], array($this, 'sec_desc'), 'page_config');
+            add_settings_section($section['id'], $section['title'], array($this, 'sec_desc'), $this->slug . '_setup');
             
             foreach ( $section['inputs'] as $input ) {
                 $this->input_min[] = $input['length_min'];
@@ -93,7 +94,7 @@ class Page {
                 $this->input_valid[] = $input['validate'];
                 $this->input_list[] = $input['list'];
                 $this->input_place[] = $input['placeholder'];
-                add_settings_field($input['id'], $input['title'], array($this, $input['type']), 'page_config', $section['id']);
+                add_settings_field($input['id'], $input['title'], array($this, $input['type']), $this->slug . '_setup', $section['id']);
             }
         }
         
@@ -322,7 +323,7 @@ class My_settings extends Page {
                     'length_max' => 25,
                     'desc' => 'test',
                     'list' => 'meow, woof, bark'
-                    //'validate' => 'validate_url'
+                    
                 )
             )
         );
@@ -336,7 +337,8 @@ class My_settings extends Page {
                 array(
                     'id' => 'test3',
                     'title' => 'Text Input 2',
-                    'type' => 'text'
+                    'type' => 'text',
+                    //'validate' => 'validate_url'
                 ),
             )
         );
@@ -355,7 +357,6 @@ class My_settings extends Page {
                     'type' => 'checkbox',
                     'desc' => 'test',
                     'list' => 'meow, woof, bark'
-                    //'validate' => 'validate_url'
                 )
             )
         );
@@ -363,5 +364,16 @@ class My_settings extends Page {
 }
 $page = new My_settings();
 $page->setup();
+
+
+/***********************
+Usage
+***********************/
+// Get all options
+// Retrieved by passing your title 'options', an underscore '_', and 'config' at the end.
+// example:  $data = get_option('options_config'); 
+
+// Grab need variables from options
+// example: $time = $data['test3'];
 
 ?>
